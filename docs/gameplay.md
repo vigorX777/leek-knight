@@ -33,6 +33,13 @@
 - A coin settlement briefly freezes control updates, flashes the screen, shakes the camera, and emits particles toward the balance readout.
 - Switching coin direction, timing out, or crashing breaks a visible combo and plays a separate drop sound.
 
+## Audio
+
+- The game uses Web Audio for engine noise, coin effects, crash sounds, and a procedural 8-bit BGM loop.
+- The BGM starts when a ride begins and stops on the result screen or when exiting the ride.
+- Coin pickups briefly add a higher arpeggio layer to the BGM, with stronger combo streaks producing a busier texture.
+- No external audio files are required at runtime.
+
 ## Leaderboard
 
 - Completed runs can be submitted to `/api/leaderboard`.

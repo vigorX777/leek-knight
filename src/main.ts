@@ -183,6 +183,7 @@ function updateSoundLabels(): void {
     const button = $(selector)
     button.dataset.audioState = audio.contextState
     button.dataset.engineRunning = String(audio.engineRunning)
+    button.dataset.bgmRunning = String(audio.bgmRunning)
   }
 }
 
@@ -288,6 +289,7 @@ async function startRide(): Promise<void> {
     })
     $('#game-root').focus({ preventScroll: true })
     await audio.startEngine().catch(() => undefined)
+    await audio.startBgm().catch(() => undefined)
     audio.play('ui')
     updateSoundLabels()
     error.textContent = ''
@@ -563,6 +565,7 @@ function escapeHtml(text: string): string {
 
 function showResult(result: RunResult): void {
   audio.stopEngine()
+  audio.stopBgm()
   lastRunResult = result
   const totalReturn = calculateReturn(result.initialAmount, result.finalAmount)
   $('#result-kicker').innerHTML = `<span></span> ${result.reason === 'finished' ? 'RIDE COMPLETE' : 'MARKET CRASH'}`
@@ -585,6 +588,7 @@ function exitGame(): void {
   currentGame?.destroy()
   currentGame = null
   audio.stopEngine()
+  audio.stopBgm()
   $('#result-modal').classList.remove('is-visible')
   $('#full-leaderboard-modal').classList.remove('is-visible')
   showScreen('setup')
@@ -594,8 +598,16 @@ $('#play-now').addEventListener('click', enterGarage)
 $('#back-home').addEventListener('click', () => showScreen('landing'))
 $('#start-ride').addEventListener('click', startRide)
 $('#exit-game').addEventListener('click', exitGame)
-$('#restart-game').addEventListener('click', () => { $('#result-modal').classList.remove('is-visible'); currentGame?.restart(); void audio.startEngine().then(updateSoundLabels) })
-$('#result-retry').addEventListener('click', () => { $('#result-modal').classList.remove('is-visible'); currentGame?.restart(); void audio.startEngine().then(updateSoundLabels) })
+$('#restart-game').addEventListener('click', () => {
+  $('#result-modal').classList.remove('is-visible')
+  currentGame?.restart()
+  void Promise.all([audio.startEngine(), audio.startBgm()]).then(updateSoundLabels)
+})
+$('#result-retry').addEventListener('click', () => {
+  $('#result-modal').classList.remove('is-visible')
+  currentGame?.restart()
+  void Promise.all([audio.startEngine(), audio.startBgm()]).then(updateSoundLabels)
+})
 $('#result-garage').addEventListener('click', exitGame)
 $('#nickname-input').addEventListener('input', () => {
   const value = $<HTMLInputElement>('#nickname-input').value.trim()

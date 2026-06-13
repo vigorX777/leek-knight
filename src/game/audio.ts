@@ -1,9 +1,16 @@
+import { BGM_STEP_SECONDS, getBgmStep } from './bgm'
+
 type SoundKind = 'ui' | 'gain' | 'loss' | 'land' | 'crash' | 'finish'
 
 export class GameAudio {
   private context: AudioContext | null = null
   private engineOscillator: OscillatorNode | null = null
   private engineGain: GainNode | null = null
+  private bgmGain: GainNode | null = null
+  private bgmTimer: ReturnType<typeof globalThis.setTimeout> | null = null
+  private bgmStep = 0
+  private bgmHypeUntil = 0
+  private bgmHypeLevel = 0
   private muted = localStorage.getItem('leek-knight-muted') === 'true'
 
   get isMuted(): boolean {
@@ -17,6 +24,10 @@ export class GameAudio {
 
   get engineRunning(): boolean {
     return this.engineOscillator !== null
+  }
+
+  get bgmRunning(): boolean {
+    return this.bgmTimer !== null
   }
 
   async unlock(): Promise<void> {
@@ -35,6 +46,9 @@ export class GameAudio {
     localStorage.setItem('leek-knight-muted', String(this.muted))
     if (this.engineGain && this.context) {
       this.engineGain.gain.setTargetAtTime(this.muted ? 0 : 0.055, this.context.currentTime, 0.03)
+    }
+    if (this.bgmGain && this.context) {
+      this.bgmGain.gain.setTargetAtTime(this.muted ? 0 : 0.032, this.context.currentTime, 0.05)
     }
     return this.muted
   }
@@ -71,6 +85,33 @@ export class GameAudio {
     this.engineGain = null
   }
 
+  async startBgm(): Promise<void> {
+    await this.unlock()
+    if (!this.context || this.bgmTimer !== null) return
+    this.bgmGain = this.context.createGain()
+    this.bgmGain.gain.value = this.muted ? 0 : 0.032
+    this.bgmGain.connect(this.context.destination)
+    this.bgmStep = 0
+    this.scheduleBgmStep(0)
+  }
+
+  stopBgm(): void {
+    if (this.bgmTimer !== null) {
+      globalThis.clearTimeout(this.bgmTimer)
+      this.bgmTimer = null
+    }
+    if (this.bgmGain && this.context) {
+      const gain = this.bgmGain
+      gain.gain.setTargetAtTime(0.0001, this.context.currentTime, 0.04)
+      globalThis.setTimeout(() => {
+        gain.disconnect()
+        if (this.bgmGain === gain) this.bgmGain = null
+      }, 160)
+    } else {
+      this.bgmGain = null
+    }
+  }
+
   play(kind: SoundKind, combo?: number): void {
     if (!this.context || this.muted) return
     if (this.context.state === 'suspended') {
@@ -78,9 +119,11 @@ export class GameAudio {
       return
     }
     if (kind === 'gain' || kind === 'loss') {
+      this.bumpBgmHype(combo ?? 1)
       this.playCoinSequence(kind, combo ?? 1)
       return
     }
+    if (kind === 'crash') this.bumpBgmHype(0)
     const presets: Record<SoundKind, [number, number, OscillatorType]> = {
       ui: [340, 0.06, 'sine'], gain: [720, 0.18, 'triangle'], loss: [150, 0.22, 'sawtooth'],
       land: [90, 0.08, 'square'], crash: [58, 0.42, 'sawtooth'], finish: [880, 0.5, 'triangle'],
@@ -159,5 +202,78 @@ export class GameAudio {
       shimmer.start(now)
       shimmer.stop(now + 0.5)
     }
+  }
+
+  private bumpBgmHype(combo: number): void {
+    if (!this.context) return
+    this.bgmHypeLevel = Math.max(0, Math.min(4, combo))
+    this.bgmHypeUntil = this.context.currentTime + (combo > 0 ? 2.4 : 0.6)
+  }
+
+  private scheduleBgmStep(delayMs: number): void {
+    this.bgmTimer = globalThis.setTimeout(() => {
+      this.playBgmStep()
+      this.scheduleBgmStep(BGM_STEP_SECONDS * 1000)
+    }, delayMs)
+  }
+
+  private playBgmStep(): void {
+    if (!this.context || !this.bgmGain) return
+    const now = this.context.currentTime
+    const hype = now < this.bgmHypeUntil ? this.bgmHypeLevel : 0
+    const step = getBgmStep(this.bgmStep, hype)
+    this.bgmStep += 1
+
+    if (!this.muted && this.context.state !== 'suspended') {
+      if (step.kick) this.playPercussion(92, 42, 0.09, 'sine')
+      if (step.snare) this.playPercussion(210, 115, 0.075, 'sawtooth')
+      if (step.hat) this.playPercussion(2400, 1800, 0.028, 'square')
+      if (step.bassFrequency) this.playBgmTone(step.bassFrequency, 0.16, 0.045, 'square', 0.94)
+      if (step.melodyFrequency) this.playBgmTone(step.melodyFrequency, 0.11, 0.032, 'square', 1.01)
+      if (step.arpFrequency) this.playBgmTone(step.arpFrequency, 0.075, 0.02, 'triangle', 1.06)
+    }
+  }
+
+  private playBgmTone(
+    frequency: number,
+    duration: number,
+    volume: number,
+    type: OscillatorType,
+    bend = 1,
+  ): void {
+    if (!this.context || !this.bgmGain) return
+    const now = this.context.currentTime
+    const oscillator = this.context.createOscillator()
+    const gain = this.context.createGain()
+    oscillator.type = type
+    oscillator.frequency.setValueAtTime(frequency, now)
+    oscillator.frequency.exponentialRampToValueAtTime(frequency * bend, now + duration)
+    gain.gain.setValueAtTime(0.0001, now)
+    gain.gain.exponentialRampToValueAtTime(volume, now + 0.01)
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + duration)
+    oscillator.connect(gain).connect(this.bgmGain)
+    oscillator.start(now)
+    oscillator.stop(now + duration)
+  }
+
+  private playPercussion(
+    startFrequency: number,
+    endFrequency: number,
+    volume: number,
+    type: OscillatorType,
+  ): void {
+    if (!this.context || !this.bgmGain) return
+    const now = this.context.currentTime
+    const oscillator = this.context.createOscillator()
+    const gain = this.context.createGain()
+    oscillator.type = type
+    oscillator.frequency.setValueAtTime(startFrequency, now)
+    oscillator.frequency.exponentialRampToValueAtTime(Math.max(30, endFrequency), now + 0.07)
+    gain.gain.setValueAtTime(0.0001, now)
+    gain.gain.exponentialRampToValueAtTime(volume, now + 0.006)
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.09)
+    oscillator.connect(gain).connect(this.bgmGain)
+    oscillator.start(now)
+    oscillator.stop(now + 0.1)
   }
 }
