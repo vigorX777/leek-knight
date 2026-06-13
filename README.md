@@ -6,6 +6,10 @@
 
 代码仓库：[https://github.com/vigorX777/stonk-rider](https://github.com/vigorX777/stonk-rider)
 
+![Stonk Rider 小黑配图](assets/stonk-rider-illustrations/01-k-line-rider.png)
+
+小黑把 A 股 K 线当山路骑：涨也捡，跌也捡，模拟余额像老虎机一样发疯。
+
 ## 操作
 
 - `W` / `↑`：加速
