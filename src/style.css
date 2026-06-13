@@ -9,6 +9,9 @@ button { color:inherit; }
 .screen.is-active { display:block; animation:screen-in .45s ease both; }
 @keyframes screen-in { from { opacity:0; transform:scale(1.008); } }
 .topbar { height:82px; padding:0 5vw; display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid #262a31; position:relative; z-index:5; }
+.topbar-actions { display:flex; align-items:center; gap:12px; }
+.repo-link { color:var(--cream); text-decoration:none; border:1px solid #343942; padding:11px 14px; font-size:11px; letter-spacing:.12em; text-transform:uppercase; }
+.repo-link:hover { color:var(--red); border-color:var(--red); }
 .brand { color:var(--cream); text-decoration:none; display:flex; align-items:center; gap:13px; font-family:'Barlow Condensed'; font-size:20px; font-weight:800; letter-spacing:.08em; }
 .brand-mark { width:38px; height:38px; display:grid; place-items:center; color:#080a0d; background:var(--red); transform:skew(-8deg); }
 .icon-button,.text-button,.hud-button { border:0; background:none; cursor:pointer; font-size:11px; letter-spacing:.12em; text-transform:uppercase; }
@@ -25,6 +28,8 @@ h1 em { color:var(--red); font-style:italic; }
 .cta-button:disabled { opacity:.55; cursor:wait; }
 .cta-button b { font-size:24px; }
 .disclaimer { margin-top:27px; color:#626872; font-size:10px; }
+.author-credit { margin-top:10px; color:#858b94; font-size:10px; letter-spacing:.08em; text-transform:uppercase; }
+.author-credit b { color:var(--amber); font-weight:700; }
 .hero-art { height:min(68vh,680px); position:relative; overflow:hidden; border:1px solid #24282f; background:radial-gradient(circle at 72% 25%,#492014 0,transparent 28%),linear-gradient(145deg,#14171c,#08090b 70%); clip-path:polygon(8% 0,100% 0,100% 93%,0 100%,0 12%); }
 .sun { position:absolute; right:13%; top:10%; width:220px; height:220px; border-radius:50%; background:repeating-linear-gradient(to bottom,var(--red) 0 8px,transparent 8px 13px); opacity:.7; }
 .chart-line { position:absolute; inset:34% -10% 0; background:linear-gradient(151deg,transparent 0 19%,var(--red) 19.3% 19.7%,transparent 20% 36%,var(--red) 36.3% 36.7%,transparent 37% 49%,var(--red) 49.3% 49.7%,transparent 50%); filter:drop-shadow(0 0 12px #ff4d2e); transform:skewY(-4deg); }

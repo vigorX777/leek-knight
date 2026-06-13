@@ -32,7 +32,13 @@ let leaderboardFilterReady = false
 app.innerHTML = `
   <div class="ambient-grid"></div>
   <main id="landing" class="screen landing-screen is-active">
-    <nav class="topbar"><a class="brand" href="#"><span class="brand-mark">SR</span><span>STONK RIDER</span></a><button id="sound-top" class="icon-button" aria-label="切换音效">SOUND ON</button></nav>
+    <nav class="topbar">
+      <a class="brand" href="#"><span class="brand-mark">SR</span><span>STONK RIDER</span></a>
+      <div class="topbar-actions">
+        <a class="repo-link" href="https://github.com/vigorX777/stonk-rider" target="_blank" rel="noreferrer">GitHub Repo</a>
+        <button id="sound-top" class="icon-button" aria-label="切换音效">SOUND ON</button>
+      </div>
+    </nav>
     <section class="hero">
       <div class="hero-copy">
         <p class="eyebrow"><span></span> A-SHARE PHYSICS EXPERIMENT</p>
@@ -40,6 +46,7 @@ app.innerHTML = `
         <p class="hero-lead">把真实 A 股近一年走势变成越野赛道。油门、重心与市场波动，缺一不可。</p>
         <button id="play-now" class="cta-button"><span>PLAY NOW</span><b>→</b></button>
         <p class="disclaimer">娱乐作品 · 历史数据可视化 · 不构成任何投资建议</p>
+        <p class="author-credit">Made by <b>vigorxu</b> · Stonk Rider creator</p>
       </div>
         <div class="hero-art" aria-hidden="true">
         <div class="sun"></div><div class="chart-line"></div>

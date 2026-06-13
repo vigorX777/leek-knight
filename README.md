@@ -2,6 +2,10 @@
 
 把真实 A 股近一年 K 线变成越野摩托赛道的浏览器物理游戏。
 
+线上试玩：[https://stonk-rider.pages.dev](https://stonk-rider.pages.dev)
+
+代码仓库：[https://github.com/vigorX777/stonk-rider](https://github.com/vigorX777/stonk-rider)
+
 ## 操作
 
 - `W` / `↑`：加速
